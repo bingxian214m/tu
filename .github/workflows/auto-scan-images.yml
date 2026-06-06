@@ -1,0 +1,23 @@
+name: 自动扫描images图片生成文件列表
+on:
+  push:
+    paths:
+      - 'images/**'  # 只要images文件夹有变化，就自动执行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取仓库代码
+        uses: actions/checkout@v4
+
+      - name: 扫描图片并生成files.json
+        run: |
+          cd images
+          ls -1 | jq -R . | jq -s . > ../files.json
+
+      - name: 提交更新的files.json
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "🤖 自动更新图片列表"
+          add: "files.json"
