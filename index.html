@@ -29,7 +29,6 @@
     .top-title p{
       color:#aaa;margin-top:8px;
     }
-    /*上传框*/
     .upload-area{
       width:100%;max-width:700px;height:220px;margin:0 auto 30px;
       border:2px dashed #ff69b4;border-radius:14px;
@@ -43,7 +42,6 @@
       margin-top:12px;padding:9px 20px;background:#ff69b4;border-radius:8px;
       border:none;color:#000;font-size:16px;cursor:pointer;
     }
-    /*预览卡片容器*/
     .img-wrap{
       max-width:700px;margin:0 auto;
       display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;
@@ -54,7 +52,6 @@
     .link-in{flex:1;background:#222;border:1px solid #333;color:#fff;padding:5px;font-size:12px;outline:none;}
     .copy{background:#ff69b4;border:none;padding:0 9px;border-radius:4px;cursor:pointer;color:#000;}
     .copy.ok{background:#27b987;}
-    /*爱心拖尾*/
     .heart{position:absolute;pointer-events:none;color:#ff69b4;user-select:none;z-index:1;}
   </style>
 </head>
@@ -74,23 +71,20 @@
   <div class="img-wrap" id="listDom"></div>
 
 <script>
-// =========【必填修改区】4个参数=========
+// =========【正确配置】仅这4项，已帮你修正=========
 const SET = {
-  user: "bingxian214m",
-  repo: "
-tu",
-  branch: "main",
-  token: "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"
+  user: "bingxian214m",    // 你的GitHub用户名
+  repo: "tu",              // 仅仓库名！！！
+  branch: "main",          // 分支名
+  token: "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"      // 必须重新生成新Token！
 };
-// ======================================
+// ==================================================
 
 const uploadDom = document.getElementById('uploadDom');
 const fileIn = document.getElementById('fileIn');
 const listDom = document.getElementById('listDom');
 
-// 点击唤起文件
 uploadDom.onclick = e=>{if(e.target !== fileIn) fileIn.click();}
-// 拖拽上传
 uploadDom.ondragover = e=>e.preventDefault();
 uploadDom.ondrop = e=>{
   e.preventDefault();
@@ -98,43 +92,44 @@ uploadDom.ondrop = e=>{
 }
 fileIn.onchange = ()=>uploadFile(fileIn.files);
 
-// 批量上传
 async function uploadFile(files){
   for(let f of files){
     if(!f.type.startsWith('image/'))continue;
     let reader = new FileReader();
     reader.readAsArrayBuffer(f);
     reader.onload = async res=>{
-      // 文件名：时间戳防重名
       let fname = Date.now()+"_"+f.name;
       let path = `images/${fname}`;
-      // base64编码
       let buf = res.target.result;
-      let base64 = btoa(new Uint8Array(buf).reduce((a,b)=>a+String.fromCharCode(b),''));
+      let base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
 
-      // 请求github接口写入文件
-      let api = `https://api.github.com/repos/${SET.user}/${SET.repo}/contents/${path}`;
-      let resJson = await fetch(api,{
-        method:"PUT",
-        headers:{
-          Authorization:`token ${SET.token}`,
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          message:`upload ${fname}`,
-          content:base64,
-          branch:SET.branch
-        })
-      })
-      if(!resJson.ok){alert("上传失败，检查用户名/仓库名/token");return;}
-      // 生成原生Pages链接（无CDN）
-      let pageUrl = `https://${SET.user}.github.io/${SET.repo}/${path}`;
-      addCard(pageUrl,fname);
-    }
+      try {
+        let api = `https://api.github.com/repos/${SET.user}/${SET.repo}/contents/${path}`;
+        let resJson = await fetch(api,{
+          method:"PUT",
+          headers:{
+            Authorization:`token ${SET.token}`,
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            message:`upload ${fname}`,
+            content:base64,
+            branch:SET.branch
+          })
+        });
+
+        if(!resJson.ok) throw new Error(`API错误: ${resJson.status}`);
+        let pageUrl = `https://${SET.user}.github.io/${SET.repo}/${path}`;
+        addCard(pageUrl,fname);
+        alert("上传成功！图片已存入仓库images文件夹");
+      } catch (err) {
+        alert("上传失败："+err.message);
+        console.error(err);
+      }
+    };
   }
 }
 
-// 渲染预览卡片
 function addCard(url,name){
   let div = document.createElement('div');
   div.className="card";
@@ -148,7 +143,6 @@ function addCard(url,name){
   listDom.appendChild(div);
 }
 
-// 复制链接
 window.copyTxt = function(btn){
   let val = btn.previousElementSibling.value;
   navigator.clipboard.writeText(val);
@@ -156,7 +150,7 @@ window.copyTxt = function(btn){
   setTimeout(()=>{btn.innerText="复制";btn.classList.remove('ok')},1400);
 }
 
-// 爱心拖尾特效
+// 爱心拖尾
 let heartArr = [];
 document.addEventListener('mousemove',e=>{
   let h = document.createElement('div');
