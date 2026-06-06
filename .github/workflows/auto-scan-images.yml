@@ -1,23 +1,26 @@
-name: 自动扫描images图片生成文件列表
+name: Update files.json
 on:
   push:
     paths:
-      - 'images/**'  # 只要images文件夹有变化，就自动执行
-
+      - 'images/**'  # 当images文件夹有变化时触发
 jobs:
-  build:
+  update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: 拉取仓库代码
-        uses: actions/checkout@v4
-
-      - name: 扫描图片并生成files.json
+      - uses: actions/checkout@v4
+      - name: List images
         run: |
           cd images
-          ls -1 | jq -R . | jq -s . > ../files.json
-
-      - name: 提交更新的files.json
-        uses: EndBug/add-and-commit@v9
+          ls -1 > ../files.txt
+          sed -i 's/^/"/;s/$/"/' ../files.txt
+          sed -i '1s/^/[/;$s/$/]/' ../files.txt
+          sed -i 's/$/,/' ../files.txt
+          sed -i '$s/,$//' ../files.txt
+          mv ../files.txt ../files.json
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          message: "🤖 自动更新图片列表"
-          add: "files.json"
+          commit_message: "Auto-update files.json"
+          file_pattern: "files.json"
