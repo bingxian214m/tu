@@ -51,29 +51,31 @@
 
 <script>
 const cfg = {
-  imgPrefix:"https://bingxian214m.github.io/tu/images/"
+  // 🔥 我直接给你写死正确路径，绝对不会错
+  imgPrefix: "https://bingxian214m.github.io/tu/images/"
 };
 const listDom = document.getElementById('listDom');
 
-// 🔥 修复：加时间戳，彻底解决缓存问题！
-async function loadImages(){
-  try{
-    // 关键修改：每次读取最新的 files.json，不读缓存
-    const res = await fetch(`./files.json?t=${new Date().getTime()}`);
+// 强制清除缓存 + 强制加载最新
+async function loadImages() {
+  try {
+    const res = await fetch(`./files.json?noCache=${Math.random()}`);
     const list = await res.json();
-    list.forEach(name=>{
+
+    console.log("读取到图片列表：", list); // 你可以F12看是否成功
+
+    list.forEach(name => {
       const url = cfg.imgPrefix + name;
-      createCard(url,name);
-    })
-  }catch(e){
-    listDom.innerHTML = `<p style="color:#ff69b4">暂无图片~</p>`;
-    console.error("读取错误：",e);
+      createCard(url, name);
+    });
+  } catch (e) {
+    listDom.innerHTML = `<p>加载失败：` + e.message + `</p>`;
   }
 }
 
-function createCard(src,name){
+function createCard(src, name) {
   const card = document.createElement('div');
-  card.className="card";
+  card.className = "card";
   card.innerHTML = `
     <img src="${src}" alt="${name}">
     <div class="link-row">
@@ -84,22 +86,29 @@ function createCard(src,name){
   listDom.appendChild(card);
 }
 
-window.copy = btn=>{
+window.copy = btn => {
   navigator.clipboard.writeText(btn.previousElementSibling.value);
-  btn.textContent="已复制✅";btn.classList.add("ok");
-  setTimeout(()=>{btn.textContent="复制";btn.classList.remove("ok")},1500);
-}
+  btn.textContent = "已复制✅";
+  btn.classList.add("ok");
+  setTimeout(() => {
+    btn.textContent = "复制";
+    btn.classList.remove("ok");
+  }, 1500);
+};
 
 // 爱心拖尾
-let hearts=[];
-document.addEventListener("mousemove",e=>{
-  const h=document.createElement("div");
-  h.className="heart";h.textContent="❤️";
-  h.style.left=e.clientX+"px";h.style.top=e.clientY+"px";
-  document.body.appendChild(h);hearts.push(h);
-  if(hearts.length>80){hearts.shift().remove();}
+let hearts = [];
+document.addEventListener("mousemove", e => {
+  const h = document.createElement("div");
+  h.className = "heart";
+  h.textContent = "❤️";
+  h.style.left = e.clientX + "px";
+  h.style.top = e.clientY + "px";
+  document.body.appendChild(h);
+  hearts.push(h);
+  if (hearts.length > 80) hearts.shift().remove();
 });
-setInterval(()=>hearts.forEach(h=>h.style.top=parseFloat(h.style.top)-0.9+"px"),30);
+setInterval(() => hearts.forEach(h => h.style.top = parseFloat(h.style.top) - 0.9 + "px"), 30);
 
 loadImages();
 </script>
