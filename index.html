@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>原生Pages永久图床</title>
+  <title>❤️ 仿图虫自动图库</title>
   <style>
     * {
       margin: 0;
@@ -29,19 +29,6 @@
     .top-title p{
       color:#aaa;margin-top:8px;
     }
-    .upload-area{
-      width:100%;max-width:700px;height:220px;margin:0 auto 30px;
-      border:2px dashed #ff69b4;border-radius:14px;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      cursor:pointer;transition:0.3s;
-    }
-    .upload-area:hover{background:#111;box-shadow:0 0 18px #ff69b440;}
-    .upload-area input{display:none;}
-    .upload-area .ico{font-size:42px;color:#ff69b4;margin-bottom:8px;}
-    .select-btn{
-      margin-top:12px;padding:9px 20px;background:#ff69b4;border-radius:8px;
-      border:none;color:#000;font-size:16px;cursor:pointer;
-    }
     .img-wrap{
       max-width:700px;margin:0 auto;
       display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;
@@ -51,98 +38,68 @@
     .link-row{display:flex;gap:6px;margin-bottom:6px;}
     .link-in{flex:1;background:#222;border:1px solid #333;color:#fff;padding:5px;font-size:12px;outline:none;}
     .copy{background:#ff69b4;border:none;padding:0 9px;border-radius:4px;cursor:pointer;color:#000;}
-    .copy.ok{background:#27b987;}
-    .tip{font-size:12px;color:#999;margin-top:6px;}
+    .copy.ok{background:#27b87;}
     .heart{position:absolute;pointer-events:none;color:#ff69b4;user-select:none;z-index:1;}
   </style>
 </head>
 <body>
   <div class="top-title">
-    <h1>❤️ Pages原生永久图床</h1>
-    <p>本地选图→生成永久外链→手动上传图片到仓库images文件夹</p>
+    <h1>❤️ 仿图虫自动图库</h1>
+    <p>上传图片即自动展示｜永久原生外链｜无CDN</p>
   </div>
-
-  <div class="upload-area" id="uploadDom">
-    <div class="ico">🖼️</div>
-    <span>点击或拖拽图片到区域</span>
-    <button class="select-btn" onclick="fileIn.click()">选择本地图片</button>
-    <input type="file" id="fileIn" accept="image/*" multiple>
-  </div>
-
   <div class="img-wrap" id="listDom"></div>
 
 <script>
-// 仅配置用户名、仓库名
-const config = {
-  user:"bingxian214m",
-  repo:"tu"
+const cfg = {
+  imgPrefix:"https://bingxian214m.github.io/tu/images/"
 };
-
-const uploadDom = document.getElementById('uploadDom');
-const fileIn = document.getElementById('fileIn');
 const listDom = document.getElementById('listDom');
 
-uploadDom.onclick = e=>{if(e.target !== fileIn) fileIn.click();}
-uploadDom.ondragover = e=>e.preventDefault();
-uploadDom.ondrop = e=>{
-  e.preventDefault();
-  createLink(e.dataTransfer.files);
-}
-fileIn.onchange = ()=>createLink(fileIn.files);
-
-// 本地读取图片，生成Pages永久链接
-function createLink(files){
-  for(let f of files){
-    if(!f.type.startsWith('image/')) continue;
-    const localUrl = URL.createObjectURL(f);
-    // 统一文件名，避免中文乱码
-    const newName = Date.now()+"_"+f.name;
-    // 原生github pages无CDN外链
-    const outUrl = `https://${config.user}.github.io/${config.repo}/images/${newName}`;
-    addCard(localUrl,outUrl,newName);
+// 自动读取GitHub Actions生成的文件列表
+async function loadImages(){
+  try{
+    const res = await fetch("./files.json");
+    const list = await res.json();
+    list.forEach(name=>{
+      const url = cfg.imgPrefix + name;
+      createCard(url,name);
+    })
+  }catch(e){
+    listDom.innerHTML = `<p style="color:#ff69b4">暂无图片~</p>`;
   }
 }
 
-// 渲染卡片
-function addCard(previewSrc,link,name){
-  let div = document.createElement('div');
-  div.className="card";
-  div.innerHTML = `
-    <img src="${previewSrc}" alt="${name}">
+function createCard(src,name){
+  const card = document.createElement('div');
+  card.className="card";
+  card.innerHTML = `
+    <img src="${src}" alt="${name}">
     <div class="link-row">
-      <input class="link-in" value="${link}" readonly>
-      <button class="copy" onclick="copyTxt(this)">复制</button>
+      <input class="link-in" value="${src}" readonly>
+      <button class="copy" onclick="copy(this)">复制</button>
     </div>
-    <div class="tip">把图片重命名为：${name}，上传仓库images目录</div>
   `;
-  listDom.appendChild(div);
+  listDom.appendChild(card);
 }
 
-// 复制链接
-window.copyTxt = function(btn){
-  let val = btn.previousElementSibling.value;
-  navigator.clipboard.writeText(val);
-  btn.innerText="已复制";btn.classList.add('ok');
-  setTimeout(()=>{btn.innerText="复制";btn.classList.remove('ok')},1400);
+window.copy = btn=>{
+  navigator.clipboard.writeText(btn.previousElementSibling.value);
+  btn.textContent="已复制✅";btn.classList.add("ok");
+  setTimeout(()=>{btn.textContent="复制";btn.classList.remove("ok")},1500);
 }
 
-// 爱心拖尾特效
-let heartArr = [];
-document.addEventListener('mousemove',e=>{
-  let h = document.createElement('div');
-  h.className='heart';h.innerText='❤️';
-  h.style.left=e.clientX+'px';h.style.top=e.clientY+'px';h.style.fontSize='14px';
-  document.body.appendChild(h);heartArr.push(h);
-  if(heartArr.length>85){
-    heartArr[0].style.opacity=0;
-    setTimeout(()=>heartArr.shift().remove(),700);
-  }
-})
-setInterval(()=>{
-  heartArr.forEach(item=>{
-    item.style.top = parseFloat(item.style.top)-0.85+'px';
-  })
-},30);
+// 爱心拖尾
+let hearts=[];
+document.addEventListener("mousemove",e=>{
+  const h=document.createElement("div");
+  h.className="heart";h.textContent="❤️";
+  h.style.left=e.clientX+"px";h.style.top=e.clientY+"px";
+  document.body.appendChild(h);hearts.push(h);
+  if(hearts.length>80){hearts.shift().remove();}
+});
+setInterval(()=>hearts.forEach(h=>h.style.top=parseFloat(h.style.top)-0.9+"px"),30);
+
+loadImages();
 </script>
 </body>
 </html>
