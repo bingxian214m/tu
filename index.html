@@ -3,228 +3,174 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>爱心图床 - 免费在线图片直链工具</title>
+  <title>原生Pages永久图床</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: "Microsoft YaHei", sans-serif;
+      font-family: "Microsoft YaHei",sans-serif;
     }
     body {
       background: #000;
       min-height: 100vh;
-      padding: 20px;
-      color: #fff;
+      padding:22px;
+      color:#fff;
     }
-    .header {
-      text-align: center;
-      margin: 30px 0;
+    .top-title{
+      text-align:center;
+      margin:32px 0;
     }
-    .header h1 {
-      color: #ff69b4;
-      font-size: 28px;
-      text-shadow: 0 0 12px #ff69b4;
+    .top-title h1{
+      color:#ff69b4;
+      font-size:28px;
+      text-shadow:0 0 12px #ff69b4;
     }
-    .header p {
-      margin-top: 8px;
-      color: #bbb;
-      font-size: 15px;
+    .top-title p{
+      color:#aaa;margin-top:8px;
     }
-    .upload-box {
-      width: 100%;
-      max-width: 700px;
-      height: 220px;
-      margin: 0 auto 30px;
-      border: 2px dashed #ff69b4;
-      border-radius: 14px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    /*上传框*/
+    .upload-area{
+      width:100%;max-width:700px;height:220px;margin:0 auto 30px;
+      border:2px dashed #ff69b4;border-radius:14px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      cursor:pointer;transition:0.3s;
     }
-    .upload-box:hover {
-      background: #111;
-      box-shadow: 0 0 20px #ff69b444;
+    .upload-area:hover{background:#111;box-shadow:0 0 18px #ff69b440;}
+    .upload-area input{display:none;}
+    .upload-area .ico{font-size:42px;color:#ff69b4;margin-bottom:8px;}
+    .select-btn{
+      margin-top:12px;padding:9px 20px;background:#ff69b4;border-radius:8px;
+      border:none;color:#000;font-size:16px;cursor:pointer;
     }
-    .upload-box input {
-      display: none;
+    /*预览卡片容器*/
+    .img-wrap{
+      max-width:700px;margin:0 auto;
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;
     }
-    .upload-box .icon {
-      color: #ff69b4;
-      font-size: 40px;
-      margin-bottom: 10px;
-    }
-    .upload-box label {
-      color: #fff;
-      background: #ff69b4;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .preview-list {
-      width: 100%;
-      max-width: 700px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px;
-    }
-    .img-card {
-      background: #111;
-      border-radius: 10px;
-      overflow: hidden;
-      padding: 12px;
-    }
-    .img-card img {
-      width: 100%;
-      height: 140px;
-      object-fit: cover;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-    .link-box {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-    .link-input {
-      flex: 1;
-      padding: 6px;
-      background: #222;
-      border: 1px solid #444;
-      color: #fff;
-      border-radius: 4px;
-      font-size: 12px;
-      outline: none;
-    }
-    .copy-btn {
-      padding: 6px 10px;
-      background: #ff69b4;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .copy-btn.success {
-      background: #25c2a0;
-    }
-    .heart {
-      position: absolute;
-      pointer-events: none;
-      user-select: none;
-      color: #ff69b4;
-      z-index: 1;
-    }
+    .card{background:#121212;border-radius:10px;padding:12px;}
+    .card img{width:100%;height:135px;object-fit:cover;border-radius:7px;margin-bottom:9px;}
+    .link-row{display:flex;gap:6px;margin-bottom:6px;}
+    .link-in{flex:1;background:#222;border:1px solid #333;color:#fff;padding:5px;font-size:12px;outline:none;}
+    .copy{background:#ff69b4;border:none;padding:0 9px;border-radius:4px;cursor:pointer;color:#000;}
+    .copy.ok{background:#27b987;}
+    /*爱心拖尾*/
+    .heart{position:absolute;pointer-events:none;color:#ff69b4;user-select:none;z-index:1;}
   </style>
 </head>
 <body>
+  <div class="top-title">
+    <h1>❤️ Pages原生永久图床</h1>
+    <p>上传图片存入Github仓库｜生成原生Pages外链｜无CDN</p>
+  </div>
 
-<div class="header">
-  <h1>❤️ 爱心图床 · 在线图片直链工具</h1>
-  <p>上传图片 → 生成永久直链 → 一键复制 | GitHub免费托管</p>
-</div>
+  <div class="upload-area" id="uploadDom">
+    <div class="ico">🖼️</div>
+    <span>点击或拖拽图片到区域上传</span>
+    <button class="select-btn" onclick="fileIn.click()">选择本地图片</button>
+    <input type="file" id="fileIn" accept="image/*" multiple>
+  </div>
 
-<div class="upload-box" id="uploadBox">
-  <div class="icon">🖼️</div>
-  <span>点击/拖拽上传图片</span>
-  <label for="fileInput">选择图片</label>
-  <input type="file" id="fileInput" accept="image/*" multiple>
-</div>
-
-<div class="preview-list" id="previewList"></div>
+  <div class="img-wrap" id="listDom"></div>
 
 <script>
-// 1. 图片上传 + Base64永久直链生成（GitHub部署专用）
-const fileInput = document.getElementById('fileInput');
-const previewList = document.getElementById('previewList');
-const uploadBox = document.getElementById('uploadBox');
-
-uploadBox.addEventListener('click', () => fileInput.click());
-
-// 拖拽上传
-uploadBox.ondragover = (e) => e.preventDefault();
-uploadBox.ondrop = (e) => {
-  e.preventDefault();
-  handleFiles(e.dataTransfer.files);
+// =========【必填修改区】4个参数=========
+const SET = {
+  user: "bingxian214m",
+  repo: "你的仓库名称",
+  branch: "main",
+  token: "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"
 };
+// ======================================
 
-fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+const uploadDom = document.getElementById('uploadDom');
+const fileIn = document.getElementById('fileIn');
+const listDom = document.getElementById('listDom');
 
-function handleFiles(files) {
-  for (let file of files) {
-    if (!file.type.startsWith('image/')) continue;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64Url = e.target.result;
-      createCard(base64Url, file.name);
-    };
-    reader.readAsDataURL(file);
+// 点击唤起文件
+uploadDom.onclick = e=>{if(e.target !== fileIn) fileIn.click();}
+// 拖拽上传
+uploadDom.ondragover = e=>e.preventDefault();
+uploadDom.ondrop = e=>{
+  e.preventDefault();
+  uploadFile(e.dataTransfer.files);
+}
+fileIn.onchange = ()=>uploadFile(fileIn.files);
+
+// 批量上传
+async function uploadFile(files){
+  for(let f of files){
+    if(!f.type.startsWith('image/'))continue;
+    let reader = new FileReader();
+    reader.readAsArrayBuffer(f);
+    reader.onload = async res=>{
+      // 文件名：时间戳防重名
+      let fname = Date.now()+"_"+f.name;
+      let path = `images/${fname}`;
+      // base64编码
+      let buf = res.target.result;
+      let base64 = btoa(new Uint8Array(buf).reduce((a,b)=>a+String.fromCharCode(b),''));
+
+      // 请求github接口写入文件
+      let api = `https://api.github.com/repos/${SET.user}/${SET.repo}/contents/${path}`;
+      let resJson = await fetch(api,{
+        method:"PUT",
+        headers:{
+          Authorization:`token ${SET.token}`,
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          message:`upload ${fname}`,
+          content:base64,
+          branch:SET.branch
+        })
+      })
+      if(!resJson.ok){alert("上传失败，检查用户名/仓库名/token");return;}
+      // 生成原生Pages链接（无CDN）
+      let pageUrl = `https://${SET.user}.github.io/${SET.repo}/${path}`;
+      addCard(pageUrl,fname);
+    }
   }
 }
 
-function createCard(url, name) {
-  const card = document.createElement('div');
-  card.className = 'img-card';
-  card.innerHTML = `
+// 渲染预览卡片
+function addCard(url,name){
+  let div = document.createElement('div');
+  div.className="card";
+  div.innerHTML = `
     <img src="${url}" alt="${name}">
-    <div class="link-box">
-      <input class="link-input" type="text" value="${url}" readonly>
-      <button class="copy-btn" onclick="copy(this)">复制</button>
+    <div class="link-row">
+      <input class="link-in" value="${url}" readonly>
+      <button class="copy" onclick="copyTxt(this)">复制</button>
     </div>
   `;
-  previewList.appendChild(card);
+  listDom.appendChild(div);
 }
 
 // 复制链接
-function copy(btn) {
-  const input = btn.previousElementSibling;
-  input.select();
-  navigator.clipboard.writeText(input.value);
-  btn.textContent = '成功✅';
-  btn.classList.add('success');
-  setTimeout(() => {
-    btn.textContent = '复制';
-    btn.classList.remove('success');
-  }, 1500);
+window.copyTxt = function(btn){
+  let val = btn.previousElementSibling.value;
+  navigator.clipboard.writeText(val);
+  btn.innerText="已复制";btn.classList.add('ok');
+  setTimeout(()=>{btn.innerText="复制";btn.classList.remove('ok')},1400);
 }
 
-// 2. 爱心鼠标拖尾
-const heartOpt = { size:14, color:'#ff69b4', fade:0.7, max:90 };
-let heartsArr = [];
-let mx=0, my=0;
-
-document.addEventListener('mousemove', e=>{
-  mx = e.clientX;
-  my = e.clientY;
-  createHeart();
-});
-
-function createHeart(){
-  const h = document.createElement('div');
-  h.className = 'heart';
-  h.innerText = '❤️';
-  h.style.fontSize = heartOpt.size+'px';
-  h.style.left = mx+'px';
-  h.style.top = my+'px';
-  document.body.appendChild(h);
-  heartsArr.push(h);
-  if(heartsArr.length>heartOpt.max) delHeart(heartsArr.shift());
-}
-
-function delHeart(el){
-  el.style.opacity = 0;
-  setTimeout(()=>el.remove(), heartOpt.fade*1000);
-}
-
+// 爱心拖尾特效
+let heartArr = [];
+document.addEventListener('mousemove',e=>{
+  let h = document.createElement('div');
+  h.className='heart';h.innerText='❤️';
+  h.style.left=e.clientX+'px';h.style.top=e.clientY+'px';h.style.fontSize='14px';
+  document.body.appendChild(h);heartArr.push(h);
+  if(heartArr.length>85){
+    heartArr[0].style.opacity=0;
+    setTimeout(()=>heartArr.shift().remove(),700);
+  }
+})
 setInterval(()=>{
-  heartsArr.forEach(item=>{
-    item.style.top = parseFloat(item.style.top)-0.9+'px';
-  });
+  heartArr.forEach(item=>{
+    item.style.top = parseFloat(item.style.top)-0.85+'px';
+  })
 },30);
 </script>
 </body>
